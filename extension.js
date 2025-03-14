@@ -148,6 +148,17 @@ ${navItems}
 
 ${translated}`;
 
+						// 更新原始README文件
+						const originalReadmePath = path.join(path.dirname(readmePath), 'README.md');
+						const originalContent = fs.readFileSync(originalReadmePath, 'utf8');
+						if (!originalContent.includes('<!-- LANG_NAV -->')) {
+							const originalWithNav = `<!-- LANG_NAV -->
+${navItems}
+
+${originalContent}`;
+							fs.writeFileSync(originalReadmePath, originalWithNav);
+						}
+
 						const newPath = path.join(
 							path.dirname(readmePath),
 							`README_${lang}.md`
