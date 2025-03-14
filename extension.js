@@ -104,11 +104,25 @@ async function activate(context) {
 					progress.report({ message: `正在生成 ${lang} 版本...` });
 					const translated = await translateText(content, lang, apiKey);
 					if (translated) {
+						// 生成语言导航栏
+						const allLangs = ['en', ...targetLangs];
+						const navItems = allLangs.map(l => {
+							const displayName = { en: 'English', zh: '中文', ko: '한국어', jp: '日本語' }[l];
+							const filename = l === 'en' ? 'README.md' : `README_${l}.md`;
+							return l === lang ? displayName : `[${displayName}](${filename})`;
+						}).join(' | ');
+
+						const translatedWithNav = `<!-- LANG_NAV -->
+		${navItems}
+
+		${translated}`;
+
 						const newPath = path.join(
 							path.dirname(readmePath),
 							`README_${lang}.md`
 						);
-						fs.writeFileSync(newPath, translated);
+						// fs.writeFileSync(newPath, translated);
+						fs.writeFileSync(newPath, translatedWithNav);
 					}
 				}
 			});
