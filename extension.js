@@ -23,28 +23,6 @@ const OpenAI = require("openai").default;
  */
 
 
-/*
-// Please install OpenAI SDK first: `npm install openai`
-
-import OpenAI from "openai";
-
-const openai = new OpenAI({
-		baseURL: 'https://api.deepseek.com',
-		apiKey: '<DeepSeek API Key>'
-});
-
-async function main() {
-  const completion = await openai.chat.completions.create({
-	messages: [{ role: "system", content: "You are a helpful assistant." }],
-	model: "deepseek-chat",
-  });
-
-  console.log(completion.choices[0].message.content);
-}
-
-main();
-*/
-
 
 async function translateText(text, targetLang, apiKey) {
 	try {
@@ -128,7 +106,7 @@ async function activate(context) {
 					if (translated) {
 						// 生成语言导航栏（包含英文）
 						const allLangs = ['en', ...targetLangs];
-						const navItems = allLangs.map(l => {
+						const navItems = allLangs.map((languageCode) => {
 							const displayName = {
 								en: 'English',
 								zh: '中文',
@@ -138,9 +116,9 @@ async function activate(context) {
 								fr: 'Français',
 								de: 'Deutsch',
 								ru: 'Русский'
-							}[l];
-							const filename = l === 'en' ? 'README.md' : `README_${l}.md`;
-							return l === lang ? `**${displayName}**` : `[${displayName}](${filename})`;
+							}[languageCode];
+							const filename = languageCode === 'en' ? 'README.md' : `README_${languageCode}.md`;
+							return languageCode === lang ? `**${displayName}**` : `[${displayName}](${filename})`;
 						}).join(' | ');
 
 						const translatedWithNav = `<!-- LANG_NAV -->
