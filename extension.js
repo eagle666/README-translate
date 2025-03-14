@@ -98,12 +98,14 @@ async function activate(context) {
 
 			// 显示多选界面
 			const selectedLangs = await vscode.window.showQuickPick([
+				{ label: 'English', value: 'en' },
 				{ label: '中文', value: 'zh' },
-				{ label: '韩语', value: 'ko' },
-				{ label: '日语', value: 'ja' },
-				{ label: '西班牙语', value: 'es' },
-				{ label: '法语', value: 'fr' },
-				{ label: '德语', value: 'de' }
+				{ label: '한국어', value: 'ko' },
+				{ label: '日本語', value: 'ja' },
+				{ label: 'Español', value: 'es' },
+				{ label: 'Français', value: 'fr' },
+				{ label: 'Deutsch', value: 'de' },
+				{ label: 'Русский', value: 'ru' }
 			], {
 				placeHolder: '选择要生成的语言版本',
 				canPickMany: true
@@ -127,7 +129,16 @@ async function activate(context) {
 						// 生成语言导航栏（包含英文）
 						const allLangs = ['en', ...targetLangs];
 						const navItems = allLangs.map(l => {
-							const displayName = { en: 'English', zh: '中文', ko: '한국어', ja: '日本語', es: 'Español', fr: 'Français', de: 'Deutsch' }[l];
+							const displayName = {
+								en: 'English',
+								zh: '中文',
+								ko: '한국어',
+								ja: '日本語',
+								es: 'Español',
+								fr: 'Français',
+								de: 'Deutsch',
+								ru: 'Русский'
+							}[l];
 							const filename = l === 'en' ? 'README.md' : `README_${l}.md`;
 							return l === lang ? `**${displayName}**` : `[${displayName}](${filename})`;
 						}).join(' | ');
@@ -141,7 +152,6 @@ ${translated}`;
 							path.dirname(readmePath),
 							`README_${lang}.md`
 						);
-						// fs.writeFileSync(newPath, translated);
 						fs.writeFileSync(newPath, translatedWithNav);
 					}
 				}
@@ -163,3 +173,4 @@ module.exports = {
 	activate,
 	deactivate
 }
+
