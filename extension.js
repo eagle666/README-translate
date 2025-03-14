@@ -85,7 +85,7 @@ async function activate(context) {
 	const generateDisposable = vscode.commands.registerCommand('readme-translate.generateMultiLang', async (uri) => {
 		const config = vscode.workspace.getConfiguration('readmeTranslate');
 		const apiKey = config.get('apiKey');
-		const targetLangs = config.get('targetLanguages');
+		const langOptions = config.inspect('targetLanguages').defaultValue;
 
 		if (!apiKey) {
 			vscode.window.showErrorMessage('请先配置DeepSeek API密钥');
@@ -96,6 +96,26 @@ async function activate(context) {
 			const readmePath = uri.fsPath;
 			const content = fs.readFileSync(readmePath, 'utf8');
 
+			// 显示多选界面
+			const selectedLangs = await vscode.window.showQuickPick([
+				{ label: '中文', value: 'zh' },
+				{ label: '韩语', value: 'ko' },
+				{ label: '日语', value: 'jp' },
+				{ label: '西班牙语', value: 'es' },
+				{ label: '法语', value: 'fr' },
+				{ label: '德语', value: 'de' }
+			], {
+				placeHolder: '选择要生成的语言版本',
+				canPickMany: true
+			});
+
+			if (!selectedLangs || selectedLangs.length === 0) {
+				vscode.window.showWarningMessage('未选择任何目标语言');
+				return;
+			}
+
+			const targetLangs = selectedLangs.map(lang => lang.value);
+
 			await vscode.window.withProgress({
 				location: vscode.ProgressLocation.Notification,
 				title: "生成多语言README"
@@ -104,10 +124,10 @@ async function activate(context) {
 					progress.report({ message: `正在生成 ${lang} 版本...` });
 					const translated = await translateText(content, lang, apiKey);
 					if (translated) {
-						// 生成语言导航栏
+						// 生成语言导航栏（包含英文）
 						const allLangs = ['en', ...targetLangs];
 						const navItems = allLangs.map(l => {
-							const displayName = { en: 'English', zh: '中文', ko: '한국어', jp: '日本語' }[l];
+							const displayName = { en: 'English', zh: '中文', ko: '한국어', jp: '日本語', es: 'Español', fr: 'Français', de: 'Deutsch' }[l];
 							const filename = l === 'en' ? 'README.md' : `README_${l}.md`;
 							return l === lang ? displayName : `[${displayName}](${filename})`;
 						}).join(' | ');

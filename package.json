@@ -43,7 +43,18 @@
             "ko",
             "jp"
           ],
-          "description": "需要生成的目标语言代码"
+          "description": "支持的语言代码列表（可多选）",
+          "items": {
+            "type": "string",
+            "enum": [
+              "zh",
+              "ko",
+              "jp",
+              "es",
+              "fr",
+              "de"
+            ]
+          }
         }
       }
     }
