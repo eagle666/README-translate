@@ -1,14 +1,51 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 const vscode = require('vscode');
+const fs = require('fs');
+const path = require('path');
+const axios = require('axios');
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 
 /**
- * @param {vscode.ExtensionContext} context
+/**
+ * 当扩展被激活时调用的函数。
+ * @param {vscode.ExtensionContext} context - 扩展的上下文对象，包含扩展的生命周期信息。
  */
-function activate(context) {
+/**
+ * 此注释部分可能用于描述后续代码功能或模块用途
+ * 这里可以详细说明函数、类或模块的具体作用
+ * 例如：这里将定义一个重要的工具函数，用于处理特定任务
+ */
+async function translateText(text, targetLang, apiKey) {
+	try {
+		const response = await axios.post(
+			'https://api.deepseek.com/v1/chat/completions',
+			{
+				model: 'deepseek-r1',
+				messages: [
+					{
+						role: 'user',
+						content: `将以下内容翻译为${targetLang}语言，保持markdown格式：\n${text}`
+					}
+				]
+			},
+			{
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${apiKey}`
+				}
+			}
+		);
+		return response.data.choices[0].message.content;
+	} catch (error) {
+		vscode.window.showErrorMessage('翻译失败: ' + error.message);
+		return null;
+	}
+}
+
+async function activate(context) {
 
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
@@ -24,11 +61,48 @@ function activate(context) {
 		vscode.window.showInformationMessage('Hello World from README-translate!');
 	});
 
-	context.subscriptions.push(disposable);
+	const generateDisposable = vscode.commands.registerCommand('readme-translate.generateMultiLang', async (uri) => {
+		const config = vscode.workspace.getConfiguration('readmeTranslate');
+		const apiKey = config.get('apiKey');
+		const targetLangs = config.get('targetLanguages');
+
+		if (!apiKey) {
+			vscode.window.showErrorMessage('请先配置DeepSeek API密钥');
+			return;
+		}
+
+		try {
+			const readmePath = uri.fsPath;
+			const content = fs.readFileSync(readmePath, 'utf8');
+
+			await vscode.window.withProgress({
+				location: vscode.ProgressLocation.Notification,
+				title: "生成多语言README"
+			}, async (progress) => {
+				for (const lang of targetLangs) {
+					progress.report({ message: `正在生成 ${lang} 版本...` });
+					const translated = await translateText(content, lang, apiKey);
+					if (translated) {
+						const newPath = path.join(
+							path.dirname(readmePath),
+							`README_${lang}.md`
+						);
+						fs.writeFileSync(newPath, translated);
+					}
+				}
+			});
+
+			vscode.window.showInformationMessage(`成功生成${targetLangs.length}种语言版本`);
+		} catch (error) {
+			vscode.window.showErrorMessage('生成失败: ' + error.message);
+		}
+	});
+
+	context.subscriptions.push(disposable, generateDisposable);
 }
 
 // This method is called when your extension is deactivated
-function deactivate() {}
+function deactivate() { }
 
 module.exports = {
 	activate,
