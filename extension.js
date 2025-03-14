@@ -100,7 +100,7 @@ async function activate(context) {
 			const selectedLangs = await vscode.window.showQuickPick([
 				{ label: '中文', value: 'zh' },
 				{ label: '韩语', value: 'ko' },
-				{ label: '日语', value: 'jp' },
+				{ label: '日语', value: 'ja' },
 				{ label: '西班牙语', value: 'es' },
 				{ label: '法语', value: 'fr' },
 				{ label: '德语', value: 'de' }
@@ -127,15 +127,15 @@ async function activate(context) {
 						// 生成语言导航栏（包含英文）
 						const allLangs = ['en', ...targetLangs];
 						const navItems = allLangs.map(l => {
-							const displayName = { en: 'English', zh: '中文', ko: '한국어', jp: '日本語', es: 'Español', fr: 'Français', de: 'Deutsch' }[l];
+							const displayName = { en: 'English', zh: '中文', ko: '한국어', ja: '日本語', es: 'Español', fr: 'Français', de: 'Deutsch' }[l];
 							const filename = l === 'en' ? 'README.md' : `README_${l}.md`;
-							return l === lang ? displayName : `[${displayName}](${filename})`;
+							return l === lang ? `**${displayName}**` : `[${displayName}](${filename})`;
 						}).join(' | ');
 
 						const translatedWithNav = `<!-- LANG_NAV -->
-		${navItems}
+${navItems}
 
-		${translated}`;
+${translated}`;
 
 						const newPath = path.join(
 							path.dirname(readmePath),
