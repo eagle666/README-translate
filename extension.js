@@ -94,7 +94,11 @@ async function activate(context) {
 					if (translated) {
 						// 生成语言导航栏（包含英文）
 						// const allLangs = ['en', ...targetLangs];
-						const allLangs = [detectedOriginalREADMELang, ...targetLangs];
+						const allLangs = [detectedOriginalREADMELang.toLowerCase(), ...targetLangs.map(l => l.toLowerCase())];
+						console.log('当前allLangs:', allLangs);
+						console.log('检测到的原始语言:', detectedOriginalREADMELang);
+						console.log('当前目标语言:', eachTargetLang);
+						// console.log('生成的导航栏项:', navItems);
 						const navItems = allLangs.map((languageCode) => {
 							const displayName = {
 								en: 'English',
@@ -105,10 +109,9 @@ async function activate(context) {
 								fr: 'Français',
 								de: 'Deutsch',
 								ru: 'Русский'
-							}[languageCode];
-							// const filename = languageCode === 'en' ? 'README.md' : `README_${languageCode}.md`;
-							const filename = languageCode === detectedOriginalREADMELang ? 'README.md' : `README_${languageCode}.md`;
-							return languageCode === eachTargetLang ? `**${displayName}**` : `[${displayName}](${filename})`;
+							}[languageCode.toLowerCase()];
+							const filename = languageCode.toLowerCase() === detectedOriginalREADMELang.toLowerCase() ? 'README.md' : `README_${languageCode.toLowerCase()}.md`;
+							return languageCode.toLowerCase() === detectedOriginalREADMELang.toLowerCase() ? `**${displayName}**` : `[${displayName}](${filename})`;
 						}).join(' | ');
 
 						const translatedWithNav = `<!-- LANG_NAV -->
