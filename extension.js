@@ -7,6 +7,10 @@ const axios = require('axios');
 // import OpenAI from "openai";
 const OpenAI = require("openai").default;
 const { translateText } = require('./src/translateText.js');
+const { generateNavLangItems } = require('./src/generateNavLangItems.js');
+
+// 使用config会导致和配置项重名报错，因此改为configuration
+const configuration = require('./src/configuration.js');
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -24,41 +28,7 @@ const { translateText } = require('./src/translateText.js');
 
 
 
-// async function translateText(text, targetLang, apiKey) {
-// 	try {
-// 		const openai = new OpenAI({
-// 			baseURL: 'https://api.deepseek.com',
-// 			apiKey: apiKey
-// 		});
-// 		const completion = await openai.chat.completions.create({
-// 			messages: [{
-// 				role: 'user',
-// 				content: `将以下内容翻译为${targetLang}语言，保持markdown格式：\n${text}`
-// 			}],
-// 			model: 'deepseek-chat'
-// 		});
-// 		return completion.choices[0].message.content;
-// 	} catch (error) {
-// 		vscode.window.showErrorMessage('翻译失败: ' + error.message);
-// 		return null;
-// 	}
-// }
-
 async function activate(context) {
-
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "readme-translate" is now active!');
-
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with  registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('readme-translate.helloWorld', function () {
-		// The code you place here will be executed every time your command is executed
-
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from README-translate!');
-	});
 
 	const generateDisposable = vscode.commands.registerCommand('readme-translate.generateMultiLang', async (uri) => {
 		const config = vscode.workspace.getConfiguration('readmeTranslate');
@@ -74,27 +44,35 @@ async function activate(context) {
 			const readmePath = uri.fsPath;
 			const content = fs.readFileSync(readmePath, 'utf8');
 
+			// // 显示多选界面
+			// const selectedLangs = await vscode.window.showQuickPick([
+			// 	{ label: 'English', value: 'en' },
+			// 	{ label: '中文', value: 'zh' },
+			// 	{ label: '한국어', value: 'ko' },
+			// 	{ label: '日本語', value: 'ja' },
+			// 	{ label: 'Español', value: 'es' },
+			// 	{ label: 'Français', value: 'fr' },
+			// 	{ label: 'Deutsch', value: 'de' },
+			// 	{ label: 'Русский', value: 'ru' }
+			// ], {
+			// 	placeHolder: '选择要生成的语言版本',
+			// 	canPickMany: true
+			// });
+
 			// 显示多选界面
-			const selectedLangs = await vscode.window.showQuickPick([
-				{ label: 'English', value: 'en' },
-				{ label: '中文', value: 'zh' },
-				{ label: '한국어', value: 'ko' },
-				{ label: '日本語', value: 'ja' },
-				{ label: 'Español', value: 'es' },
-				{ label: 'Français', value: 'fr' },
-				{ label: 'Deutsch', value: 'de' },
-				{ label: 'Русский', value: 'ru' }
-			], {
+			const selectedLangs = await vscode.window.showQuickPick(configuration.targetLanguages, {
 				placeHolder: '选择要生成的语言版本',
 				canPickMany: true
 			});
 
+			console.log('用户选择结果:', selectedLangs);
 			if (!selectedLangs || selectedLangs.length === 0) {
 				vscode.window.showWarningMessage('未选择任何目标语言');
 				return;
 			}
 
 			const targetLangs = selectedLangs.map(lang => lang.value);
+			// const targetLangs = selectedLangs;
 
 			await vscode.window.withProgress({
 				location: vscode.ProgressLocation.Notification,
@@ -152,7 +130,7 @@ ${originalContent}`;
 		}
 	});
 
-	context.subscriptions.push(disposable, generateDisposable);
+	context.subscriptions.push(generateDisposable);
 }
 
 // This method is called when your extension is deactivated

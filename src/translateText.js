@@ -9,7 +9,8 @@ async function translateText(text, targetLang, apiKey) {
         const completion = await openai.chat.completions.create({
             messages: [{
                 role: 'user',
-                content: `将以下内容翻译为${targetLang}语言，保持markdown格式：\n${text}`
+                // content: `将以下内容翻译为${targetLang}语言，保持markdown格式：\n${text}`
+                content: `将该内容翻译成${targetLang}语言，其他格式等都保持一致不变：\n${text}`
             }],
             model: 'deepseek-chat'
         });
