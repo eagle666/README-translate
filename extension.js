@@ -7,7 +7,10 @@ const axios = require('axios');
 // import OpenAI from "openai";
 const OpenAI = require("openai").default;
 const { translateText } = require('./src/translateText.js');
-const { generateNavLangItems } = require('./src/generateNavLangItems.js');
+// const { generateNavLangItems } = require('./src/generateNavLangItems.js');
+
+// 导入detectReadmeLang函数
+const { detectReadmeLang } = require('./src/detectReadmeLang.js');
 
 // 使用config会导致和配置项重名报错，因此改为configuration
 const configuration = require('./src/configuration.js');
@@ -71,19 +74,27 @@ async function activate(context) {
 				return;
 			}
 
-			const targetLangs = selectedLangs.map(lang => lang.value);
+			const targetLangs = selectedLangs.map(selectedLanguage => selectedLanguage.value);
 			// const targetLangs = selectedLangs;
 
 			await vscode.window.withProgress({
 				location: vscode.ProgressLocation.Notification,
 				title: "生成多语言README"
 			}, async (progress) => {
-				for (const lang of targetLangs) {
-					progress.report({ message: `正在生成 ${lang} 版本...` });
-					const translated = await translateText(content, lang, apiKey);
+				for (const eachTargetLang of targetLangs) {
+					progress.report({ message: `正在生成 ${eachTargetLang} 版本...` });
+					const translated = await translateText(content, eachTargetLang, apiKey);
+					// 检测 README 文件的语言
+					// 读取原始README.md文件内容
+					const originalReadmePath = path.join(path.dirname(readmePath), 'README.md');
+					const originalContent = fs.readFileSync(originalReadmePath, 'utf8');
+					const detectedOriginalREADMELang = await detectReadmeLang(originalContent, apiKey);
+					console.log('检测到的语言:', detectedOriginalREADMELang);
+
 					if (translated) {
 						// 生成语言导航栏（包含英文）
-						const allLangs = ['en', ...targetLangs];
+						// const allLangs = ['en', ...targetLangs];
+						const allLangs = [detectedOriginalREADMELang, ...targetLangs];
 						const navItems = allLangs.map((languageCode) => {
 							const displayName = {
 								en: 'English',
@@ -95,8 +106,9 @@ async function activate(context) {
 								de: 'Deutsch',
 								ru: 'Русский'
 							}[languageCode];
-							const filename = languageCode === 'en' ? 'README.md' : `README_${languageCode}.md`;
-							return languageCode === lang ? `**${displayName}**` : `[${displayName}](${filename})`;
+							// const filename = languageCode === 'en' ? 'README.md' : `README_${languageCode}.md`;
+							const filename = languageCode === detectedOriginalREADMELang ? 'README.md' : `README_${languageCode}.md`;
+							return languageCode === eachTargetLang ? `**${displayName}**` : `[${displayName}](${filename})`;
 						}).join(' | ');
 
 						const translatedWithNav = `<!-- LANG_NAV -->
@@ -117,10 +129,11 @@ ${originalContent}`;
 
 						const newPath = path.join(
 							path.dirname(readmePath),
-							`README_${lang}.md`
+							`README_${eachTargetLang}.md`
 						);
 						fs.writeFileSync(newPath, translatedWithNav);
 					}
+					//////////
 				}
 			});
 

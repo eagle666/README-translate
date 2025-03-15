@@ -1,6 +1,6 @@
 const path = require('path');
 
-function generateNavLangItems(targetLangs, currentLang) {
+function generateNavLangItems(currentLang, targetLangs) {
     const allLangs = ['en', ...targetLangs];
     return allLangs.map((langCode) => {
         const displayName = {
