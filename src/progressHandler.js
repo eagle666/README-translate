@@ -20,8 +20,14 @@ exports.handleTranslationProgress = async (targetLangs, readmePath, apiKey) => {
             //////// ↑ getReadmeInfo
 
             if (translated) {
+                // 母体语言与选中的语言，都丢入allLangs数组，用于生成导航栏
                 const allLangs = [detectedOriginalREADMELang.toLowerCase(), ...targetLangs.map(l => l.toLowerCase())];
+
+
+                //////////////  ↓  navItems的返回结果为markdown的导航栏，例如：[English](README.md) | [中文](README_zh.md) | [한국어](README_ko.md) | [日本語](README_ja.md) | [Español](README_es.md) | [Français](README_fr.md) | [Deutsch](README_de.md) | [Русский](README_ru.md)
                 const navItems = allLangs.map((languageCode) => {
+
+                    //////////// ↓ 通过语言代码获取对应的显示名称
                     const displayName = {
                         en: 'English',
                         zh: '中文',
@@ -32,6 +38,8 @@ exports.handleTranslationProgress = async (targetLangs, readmePath, apiKey) => {
                         de: 'Deutsch',
                         ru: 'Русский'
                     }[languageCode.toLowerCase()];
+                    //////////// ↑ 通过语言代码获取对应的显示名称
+
                     const filename = languageCode.toLowerCase() === detectedOriginalREADMELang.toLowerCase()
                         ? 'README.md'
                         : `README_${languageCode.toLowerCase()}.md`;
@@ -39,6 +47,8 @@ exports.handleTranslationProgress = async (targetLangs, readmePath, apiKey) => {
                         ? `**${displayName}**`
                         : `[${displayName}](${filename})`;
                 }).join(' | ');
+                //////////////  ↑  navItems的返回结果为markdown的导航栏，例如：[English](README.md) | [中文](README_zh.md) | [한국어](README_ko.md) | [日本語](README_ja.md) | [Español](README_es.md) | [Français](README_fr.md) | [Deutsch](README_de.md) | [Русский](README_ru.md)
+
 
                 const translatedWithNav = `<!-- LANG_NAV -->
 ${navItems}
