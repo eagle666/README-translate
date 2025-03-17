@@ -14,7 +14,7 @@ const { detectReadmeLang } = require('./src/detectReadmeLang.js');
 
 // 使用config会导致和配置项重名报错，因此改为configuration
 const configuration = require('./src/configuration.js');
-
+const { handleTranslationProgress } = require('./src/progressHandler');
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 
@@ -65,7 +65,6 @@ async function activate(context) {
 			const targetLangs = selectedLangs.map(selectedLanguage => selectedLanguage.value);
 
 			// 调用进度处理模块
-			const { handleTranslationProgress } = require('./src/progressHandler');
 			await handleTranslationProgress(targetLangs, readmePath, apiKey);
 			// 调用进度处理模块
 
