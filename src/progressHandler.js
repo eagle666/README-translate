@@ -13,10 +13,11 @@ exports.handleTranslationProgress = async (targetLangs, readmePath, apiKey) => {
             progress.report({ message: `正在生成 ${eachTargetLang} 版本...` });
             const content = fs.readFileSync(readmePath, 'utf8');
             const translated = await translateText(content, eachTargetLang, apiKey);
-
+            //////// ↓ getReadmeInfo
             const originalReadmePath = path.join(path.dirname(readmePath), 'README.md');
             const originalContent = fs.readFileSync(originalReadmePath, 'utf8');
             const detectedOriginalREADMELang = await detectReadmeLang(originalContent, apiKey);
+            //////// ↑ getReadmeInfo
 
             if (translated) {
                 const allLangs = [detectedOriginalREADMELang.toLowerCase(), ...targetLangs.map(l => l.toLowerCase())];
