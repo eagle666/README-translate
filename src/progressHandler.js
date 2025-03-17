@@ -40,9 +40,12 @@ exports.handleTranslationProgress = async (targetLangs, readmePath, apiKey) => {
                     }[languageCode.toLowerCase()];
                     //////////// ↑ 通过语言代码获取对应的显示名称
 
+                    ////  ↓ 生成文件名的逻辑
                     const filename = languageCode.toLowerCase() === detectedOriginalREADMELang.toLowerCase()
                         ? 'README.md'
                         : `README_${languageCode.toLowerCase()}.md`;
+                    ////  ↑ 生成文件名的逻辑
+
                     return languageCode.toLowerCase() === detectedOriginalREADMELang.toLowerCase()
                         ? `**${displayName}**`
                         : `[${displayName}](${filename})`;
