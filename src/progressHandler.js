@@ -68,10 +68,18 @@ exports.handleTranslationProgress = async (targetLangs, readmePath, apiKey) => {
                     ////////////////////////////////////////////////////////////////////////////////////////////////
 
                     // 原写法
+                    vscode.window.showWarningMessage('detectedOriginalREADMELang', detectedOriginalREADMELang.toLowerCase());
+
+
                     return languageCode.toLowerCase() === detectedOriginalREADMELang.toLowerCase()
                         ? `**${displayName}**`
                         : `[${displayName}](${filename})`;
                 }).join(' | ');
+
+                // `.join(' | ')` 是 JavaScript 数组的一个方法，用于将数组中的所有元素连接成一个字符串，并用指定的分隔符分隔这些元素。
+                // 在这段代码中，`navItems` 是一个由 `map` 方法生成的数组，数组中的每个元素是一个导航项（例如 `**English**` 或 `[中文](README_zh.md)`）。
+                // `.join(' | ')` 会将这些导航项用 ` | ` 连接起来，形成一个完整的导航栏字符串，例如 `**English** | [中文](README_zh.md) | [한국어](README_ko.md)`。
+                // 需要注意的是，` | ` 是添加在每个元素之间，而不是每个元素的后面。最后一个元素后面不会有 ` | `。
 
                 ///////////// 问题之所在 ↑
 
