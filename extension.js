@@ -34,9 +34,12 @@ const configuration = require('./src/configuration.js');
 async function activate(context) {
 
 	const generateDisposable = vscode.commands.registerCommand('readme-translate.generateMultiLang', async (uri) => {
+
+		/////  ↓ 配置项
 		const config = vscode.workspace.getConfiguration('readmeTranslate');
 		const apiKey = config.get('apiKey');
 		const langOptions = config.inspect('targetLanguages').defaultValue;
+		/////  ↑ 配置项
 
 		if (!apiKey) {
 			vscode.window.showErrorMessage('请先配置DeepSeek API密钥');
@@ -46,21 +49,6 @@ async function activate(context) {
 		try {
 			const readmePath = uri.fsPath;
 			const content = fs.readFileSync(readmePath, 'utf8');
-
-			// // 显示多选界面
-			// const selectedLangs = await vscode.window.showQuickPick([
-			// 	{ label: 'English', value: 'en' },
-			// 	{ label: '中文', value: 'zh' },
-			// 	{ label: '한국어', value: 'ko' },
-			// 	{ label: '日本語', value: 'ja' },
-			// 	{ label: 'Español', value: 'es' },
-			// 	{ label: 'Français', value: 'fr' },
-			// 	{ label: 'Deutsch', value: 'de' },
-			// 	{ label: 'Русский', value: 'ru' }
-			// ], {
-			// 	placeHolder: '选择要生成的语言版本',
-			// 	canPickMany: true
-			// });
 
 			// 显示多选界面
 			const selectedLangs = await vscode.window.showQuickPick(configuration.targetLanguages, {
@@ -75,70 +63,12 @@ async function activate(context) {
 			}
 
 			const targetLangs = selectedLangs.map(selectedLanguage => selectedLanguage.value);
-			// const targetLangs = selectedLangs;
 
-			await vscode.window.withProgress({
-				location: vscode.ProgressLocation.Notification,
-				title: "生成多语言README"
-			}, async (progress) => {
-				for (const eachTargetLang of targetLangs) {
-					progress.report({ message: `正在生成 ${eachTargetLang} 版本...` });
-					const translated = await translateText(content, eachTargetLang, apiKey);
-					// 检测 README 文件的语言
-					// 读取原始README.md文件内容
-					const originalReadmePath = path.join(path.dirname(readmePath), 'README.md');
-					const originalContent = fs.readFileSync(originalReadmePath, 'utf8');
-					const detectedOriginalREADMELang = await detectReadmeLang(originalContent, apiKey);
-					console.log('检测到的语言:', detectedOriginalREADMELang);
+			// 调用进度处理模块
+			const { handleTranslationProgress } = require('./src/progressHandler');
+			await handleTranslationProgress(targetLangs, readmePath, apiKey);
+			// 调用进度处理模块
 
-					if (translated) {
-						// 生成语言导航栏（包含英文）
-						// const allLangs = ['en', ...targetLangs];
-						const allLangs = [detectedOriginalREADMELang.toLowerCase(), ...targetLangs.map(l => l.toLowerCase())];
-						console.log('当前allLangs:', allLangs);
-						console.log('检测到的原始语言:', detectedOriginalREADMELang);
-						console.log('当前目标语言:', eachTargetLang);
-						// console.log('生成的导航栏项:', navItems);
-						const navItems = allLangs.map((languageCode) => {
-							const displayName = {
-								en: 'English',
-								zh: '中文',
-								ko: '한국어',
-								ja: '日本語',
-								es: 'Español',
-								fr: 'Français',
-								de: 'Deutsch',
-								ru: 'Русский'
-							}[languageCode.toLowerCase()];
-							const filename = languageCode.toLowerCase() === detectedOriginalREADMELang.toLowerCase() ? 'README.md' : `README_${languageCode.toLowerCase()}.md`;
-							return languageCode.toLowerCase() === detectedOriginalREADMELang.toLowerCase() ? `**${displayName}**` : `[${displayName}](${filename})`;
-						}).join(' | ');
-
-						const translatedWithNav = `<!-- LANG_NAV -->
-${navItems}
-
-${translated}`;
-
-						// 更新原始README文件
-						const originalReadmePath = path.join(path.dirname(readmePath), 'README.md');
-						const originalContent = fs.readFileSync(originalReadmePath, 'utf8');
-						if (!originalContent.includes('<!-- LANG_NAV -->')) {
-							const originalWithNav = `<!-- LANG_NAV -->
-${navItems}
-
-${originalContent}`;
-							fs.writeFileSync(originalReadmePath, originalWithNav);
-						}
-
-						const newPath = path.join(
-							path.dirname(readmePath),
-							`README_${eachTargetLang}.md`
-						);
-						fs.writeFileSync(newPath, translatedWithNav);
-					}
-					//////////
-				}
-			});
 
 			vscode.window.showInformationMessage(`成功生成${targetLangs.length}种语言版本`);
 		} catch (error) {
